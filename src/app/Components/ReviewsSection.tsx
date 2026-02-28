@@ -44,7 +44,7 @@ function Stars({ rating }: { rating: number }) {
  */
 function GoogleReviewsBadge() {
   return (
-    <div className="mb-5 flex items-center lg:justify-center gap-4 p-4">
+    <div className="mb-5 flex items-center lg:justify-center gap-6 p-4">
       <div
         className="
           h-10 w-10 rounded-xl bg-white
