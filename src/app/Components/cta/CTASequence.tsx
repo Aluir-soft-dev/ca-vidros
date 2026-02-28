@@ -23,7 +23,7 @@ function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-/** ===== BUTTON (layout melhor) ===== */
+/** ===== Button (SaaS style) ===== */
 function PrimaryLink({
   href,
   children,
@@ -41,7 +41,8 @@ function PrimaryLink({
         "h-12 px-5 rounded-2xl",
         "bg-black text-white font-semibold",
         "shadow-sm",
-        "transition hover:bg-neutral-900 active:scale-[0.99]",
+        "transition",
+        "hover:bg-neutral-900 active:scale-[0.99]",
         "focus:outline-none focus:ring-2 focus:ring-black/25"
       )}
     >
@@ -50,7 +51,7 @@ function PrimaryLink({
   );
 }
 
-/** ===== MODAL SHELL (Vercel-like, sem bordas pesadas) ===== */
+/** ===== MODAL SHELL (novo layout clean) ===== */
 function ModalShell({
   stepLabel,
   title,
@@ -68,28 +69,29 @@ function ModalShell({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      {/* backdrop */}
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/55 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* modal */}
+      {/* Modal */}
       <div
         className={cn(
-          "relative w-full max-w-[460px]",
+          "relative w-full max-w-[520px]",
           "bg-white rounded-3xl overflow-hidden",
-          "shadow-[0_30px_80px_rgba(0,0,0,0.30)]"
+          "shadow-[0_35px_100px_rgba(0,0,0,0.35)]",
+          "ring-1 ring-black/10"
         )}
         role="dialog"
         aria-modal="true"
       >
-        {/* header */}
-        <div className="px-6 pt-6 pb-4">
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 rounded-2xl bg-white ring-1 ring-black/10 shadow-sm flex items-center justify-center overflow-hidden">
                 <img
                   src={BRAND.logoSrc}
                   alt={BRAND.name}
@@ -103,7 +105,7 @@ function ModalShell({
                 </div>
 
                 {showStep ? (
-                  <div className="mt-1 text-[11px] font-semibold text-black/50">
+                  <div className="mt-1 inline-flex items-center rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-black/70 ring-1 ring-black/10">
                     {stepLabel}
                   </div>
                 ) : null}
@@ -115,8 +117,9 @@ function ModalShell({
               className={cn(
                 "w-9 h-9 rounded-full",
                 "grid place-items-center",
-                "text-black",
-                "hover:bg-black/5 transition"
+                "ring-1 ring-black/10",
+                "text-black/80",
+                "hover:bg-black/5 hover:text-black transition"
               )}
               aria-label="Fechar"
               title="Fechar"
@@ -125,31 +128,28 @@ function ModalShell({
             </button>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             <h3 className="text-[22px] md:text-2xl font-extrabold text-black leading-tight">
               {title}
             </h3>
 
             {subtitle ? (
-              <p className="mt-3 text-sm text-black/70 leading-relaxed">
+              <p className="mt-2 text-sm text-black/70 leading-relaxed">
                 {subtitle}
               </p>
             ) : null}
           </div>
         </div>
 
-        {/* divider suave */}
+        {/* Divider suave */}
         <div className="h-px w-full bg-black/10" />
 
-        {/* content */}
+        {/* Content */}
         <div className="px-6 py-6">{children}</div>
 
-        {/* divider suave */}
-        <div className="h-px w-full bg-black/10" />
-
-        {/* footer */}
-        <div className="px-6 py-4 flex items-center justify-center text-xs text-black/60">
-          <span>Atendimento rapido • orcamento sem compromisso</span>
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-2 text-center text-xs text-black/55">
+          Atendimento rapido • orcamento sem compromisso
         </div>
       </div>
     </div>
@@ -194,7 +194,7 @@ function writeStored(state: StoredState) {
   }
 }
 
-/** ===== CTA CARD (layout melhor, sem mudar infos) ===== */
+/** ===== CTA CARD (parou de parecer “caixa”) ===== */
 function InfoCard({
   title,
   description,
@@ -206,21 +206,20 @@ function InfoCard({
     <div
       className={cn(
         "relative overflow-hidden",
-        "rounded-2xl p-5 md:p-6",
+        "rounded-2xl p-6",
         "text-white",
-        "shadow-sm"
+        "shadow-sm",
+        "ring-1 ring-black/10"
       )}
       style={{ backgroundColor: CARD_BLUE }}
     >
-      {/* detalhe visual (não é info, só estilo) */}
-      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/10" />
-      <div className="absolute -left-20 -bottom-20 h-44 w-44 rounded-full bg-black/10" />
+      {/* detalhe sutil */}
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10" />
+      <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-black/10" />
 
       <div className="relative">
-        <p className="font-extrabold text-white text-base md:text-lg leading-tight">
-          {title}
-        </p>
-        <p className="text-sm text-white/90 mt-2 leading-relaxed">
+        <p className="text-lg font-extrabold leading-tight">{title}</p>
+        <p className="mt-2 text-sm text-white/90 leading-relaxed">
           {description}
         </p>
       </div>
@@ -245,7 +244,6 @@ function CTACapturarLead({ onClose }: CTAProps) {
           title="Atendimento rapido no WhatsApp"
           description="Envie tipo de servico, medidas e bairro para agilizar o orcamento."
         />
-
         <PrimaryLink href={buildWhatsAppLink(message)}>
           Quero meu orcamento
         </PrimaryLink>
@@ -268,7 +266,6 @@ function CTAInstagram({ onClose }: CTAProps) {
           title="Conteudo e referencias"
           description="Veja modelos, acabamentos e ideias para o seu ambiente."
         />
-
         <PrimaryLink href={BRAND.instagramUrl}>Seguir no Instagram</PrimaryLink>
       </div>
     </ModalShell>
@@ -292,7 +289,6 @@ function CTAAnaliseGratuita({ onClose }: CTAProps) {
           title="Analise gratuita"
           description="A gente avalia seu caso e indica a melhor solucao."
         />
-
         <PrimaryLink href={buildWhatsAppLink(message)}>
           Quero analise gratuita
         </PrimaryLink>
