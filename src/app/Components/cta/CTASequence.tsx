@@ -19,6 +19,11 @@ const BRAND = {
 type CTAProps = { onClose: () => void };
 type CTAItem = { id: string; render: (props: CTAProps) => React.ReactNode };
 
+function cn(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+/** ===== BUTTON (layout melhor) ===== */
 function PrimaryLink({
   href,
   children,
@@ -31,20 +36,21 @@ function PrimaryLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="
-        w-full inline-flex items-center justify-center
-        h-12 px-5
-        rounded-2xl
-        bg-black text-white font-semibold
-        transition hover:bg-neutral-900 active:scale-[0.99]
-      "
+      className={cn(
+        "w-full inline-flex items-center justify-center",
+        "h-12 px-5 rounded-2xl",
+        "bg-black text-white font-semibold",
+        "shadow-sm",
+        "transition hover:bg-neutral-900 active:scale-[0.99]",
+        "focus:outline-none focus:ring-2 focus:ring-black/25"
+      )}
     >
       {children}
     </a>
   );
 }
 
-/** ===== MODAL SHELL (SEM BORDER) ===== */
+/** ===== MODAL SHELL (Vercel-like, sem bordas pesadas) ===== */
 function ModalShell({
   stepLabel,
   title,
@@ -62,23 +68,27 @@ function ModalShell({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
+      {/* modal */}
       <div
-        className="
-          relative w-full max-w-[420px]
-          bg-white rounded-3xl overflow-hidden
-          shadow-2xl
-        "
+        className={cn(
+          "relative w-full max-w-[460px]",
+          "bg-white rounded-3xl overflow-hidden",
+          "shadow-[0_30px_80px_rgba(0,0,0,0.30)]"
+        )}
+        role="dialog"
+        aria-modal="true"
       >
-        {/* HEADER */}
+        {/* header */}
         <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center overflow-hidden">
                 <img
                   src={BRAND.logoSrc}
@@ -87,71 +97,73 @@ function ModalShell({
                 />
               </div>
 
-              <div>
-                <div className="text-sm font-semibold text-black">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-black truncate">
                   {BRAND.name}
                 </div>
 
-                {showStep && (
-                  <div className="mt-1 text-[11px] font-semibold text-black/60">
+                {showStep ? (
+                  <div className="mt-1 text-[11px] font-semibold text-black/50">
                     {stepLabel}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="
-                w-9 h-9 rounded-full
-                flex items-center justify-center
-                text-black hover:bg-black/5 transition
-              "
+              className={cn(
+                "w-9 h-9 rounded-full",
+                "grid place-items-center",
+                "text-black",
+                "hover:bg-black/5 transition"
+              )}
               aria-label="Fechar"
+              title="Fechar"
             >
               ✕
             </button>
           </div>
 
           <div className="mt-6">
-            <h3 className="text-2xl font-extrabold text-black leading-tight">
+            <h3 className="text-[22px] md:text-2xl font-extrabold text-black leading-tight">
               {title}
             </h3>
 
-            {subtitle && (
+            {subtitle ? (
               <p className="mt-3 text-sm text-black/70 leading-relaxed">
                 {subtitle}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
 
-        {/* Divider suave */}
-        <div className="h-px bg-black/10" />
+        {/* divider suave */}
+        <div className="h-px w-full bg-black/10" />
 
-        {/* CONTENT */}
+        {/* content */}
         <div className="px-6 py-6">{children}</div>
 
-        {/* Divider suave */}
-        <div className="h-px bg-black/10" />
+        {/* divider suave */}
+        <div className="h-px w-full bg-black/10" />
 
-        {/* FOOTER */}
-        <div className="px-6 py-4 text-xs text-black/60 text-center">
-          Atendimento rapido • orcamento sem compromisso
+        {/* footer */}
+        <div className="px-6 py-4 flex items-center justify-center text-xs text-black/60">
+          <span>Atendimento rapido • orcamento sem compromisso</span>
         </div>
       </div>
     </div>
   );
 }
 
-/** ===== WhatsApp ===== */
+/** ===== WhatsApp builder ===== */
 function buildWhatsAppLink(message: string) {
   return `https://wa.me/${BRAND.whatsappNumber}?text=${encodeURIComponent(
     message
   )}`;
 }
 
-/** ===== Storage ===== */
+/** ===== storage helpers ===== */
 type StoredState = {
   index: number;
   lastClosedAt: number;
@@ -161,7 +173,14 @@ function readStored(): StoredState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.index === "number" &&
+      typeof parsed?.lastClosedAt === "number"
+    ) {
+      return parsed as StoredState;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -170,10 +189,12 @@ function readStored(): StoredState | null {
 function writeStored(state: StoredState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {}
+  } catch {
+    // ignore
+  }
 }
 
-/** ===== Info Card (SEM BORDER) ===== */
+/** ===== CTA CARD (layout melhor, sem mudar infos) ===== */
 function InfoCard({
   title,
   description,
@@ -183,13 +204,26 @@ function InfoCard({
 }) {
   return (
     <div
-      className="rounded-2xl p-5 text-white shadow-sm"
+      className={cn(
+        "relative overflow-hidden",
+        "rounded-2xl p-5 md:p-6",
+        "text-white",
+        "shadow-sm"
+      )}
       style={{ backgroundColor: CARD_BLUE }}
     >
-      <p className="font-extrabold text-white text-base">{title}</p>
-      <p className="text-sm text-white/90 mt-1 leading-relaxed">
-        {description}
-      </p>
+      {/* detalhe visual (não é info, só estilo) */}
+      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/10" />
+      <div className="absolute -left-20 -bottom-20 h-44 w-44 rounded-full bg-black/10" />
+
+      <div className="relative">
+        <p className="font-extrabold text-white text-base md:text-lg leading-tight">
+          {title}
+        </p>
+        <p className="text-sm text-white/90 mt-2 leading-relaxed">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }
@@ -197,7 +231,7 @@ function InfoCard({
 /** ================= CTA 1 ================= */
 function CTACapturarLead({ onClose }: CTAProps) {
   const message =
-    "Ola, vim pelo site e quero um orcamento.\n\nPode me ajudar?";
+    "Ola, vim pelo site e quero um orcamento.\n\n" + "Pode me ajudar?";
 
   return (
     <ModalShell
@@ -211,6 +245,7 @@ function CTACapturarLead({ onClose }: CTAProps) {
           title="Atendimento rapido no WhatsApp"
           description="Envie tipo de servico, medidas e bairro para agilizar o orcamento."
         />
+
         <PrimaryLink href={buildWhatsAppLink(message)}>
           Quero meu orcamento
         </PrimaryLink>
@@ -233,9 +268,8 @@ function CTAInstagram({ onClose }: CTAProps) {
           title="Conteudo e referencias"
           description="Veja modelos, acabamentos e ideias para o seu ambiente."
         />
-        <PrimaryLink href={BRAND.instagramUrl}>
-          Seguir no Instagram
-        </PrimaryLink>
+
+        <PrimaryLink href={BRAND.instagramUrl}>Seguir no Instagram</PrimaryLink>
       </div>
     </ModalShell>
   );
@@ -244,7 +278,7 @@ function CTAInstagram({ onClose }: CTAProps) {
 /** ================= CTA 3 ================= */
 function CTAAnaliseGratuita({ onClose }: CTAProps) {
   const message =
-    "Ola, vim pelo site e quero um orcamento.\n\nPode me ajudar?";
+    "Ola, vim pelo site e quero um orcamento.\n\n" + "Pode me ajudar?";
 
   return (
     <ModalShell
@@ -258,6 +292,7 @@ function CTAAnaliseGratuita({ onClose }: CTAProps) {
           title="Analise gratuita"
           description="A gente avalia seu caso e indica a melhor solucao."
         />
+
         <PrimaryLink href={buildWhatsAppLink(message)}>
           Quero analise gratuita
         </PrimaryLink>
