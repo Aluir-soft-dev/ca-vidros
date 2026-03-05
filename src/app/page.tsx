@@ -242,7 +242,7 @@ export default function Page() {
 
         {/* CONTEÚDO DO HERO (mais pra baixo + mais pra esquerda + menor no mobile) */}
         <div className="relative z-10 max-w-6xl mx-auto px-4">
-          <div className="pt-52 sm:pt-60 md:pt-64 max-w-[760px] sm:-ml-4 md:-ml-8">
+          <div className="pt-72 sm:pt-60 md:pt-64 max-w-[760px] sm:-ml-4 md:-ml-8">
             <h1
               className="
                 font-extrabold leading-tight text-white drop-shadow
