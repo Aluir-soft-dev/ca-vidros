@@ -246,7 +246,7 @@ export default function Page() {
             <h1
               className="
                 font-extrabold leading-tight text-white drop-shadow
-                text-xl sm:text-3xl md:text-4xl
+                text-xl sm:text-3xl md:text-2xl
               "
             >
               ATENDENDO SUA NECESSIDADE
