@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CTASequence from "./Components/cta/CTASequence";
 import ReviewsSection from "./Components/ReviewsSection";
 
@@ -12,24 +12,64 @@ import {
   faLocationDot,
   faArrowUp,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  faInstagram,
-  faFacebookF,
-  faWhatsapp,
-} from "@fortawesome/free-brands-svg-icons";
+import { faInstagram, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 export default function Page() {
+  // ✅ HERO SLIDESHOW (coloque quantas imagens quiser aqui)
+  const HERO_IMAGES = useMemo(
+    () => [
+      "/assets/ALBUM2/img1.jpeg",
+      "/assets/ALBUM2/img2.jpeg",
+      "/assets/ALBUM2/img10.jpeg",
+      "/assets/ALBUM2/img12.jpeg",
+      "/assets/ALBUM2/img14.jpeg",
+    ],
+    []
+  );
+
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroPrevIndex, setHeroPrevIndex] = useState<number | null>(null);
+  const [isFadingHero, setIsFadingHero] = useState(false);
+
+  // ✅ SLIDESHOW do card da seção CONTATO/ORÇAMENTO (direita) - mantém os caminhos
+  const SERVICES_CARD_IMAGES = useMemo(
+    () => [
+      "/assets/ALBUM1/img2.jpeg",
+      "/assets/ALBUM1/img3.jpeg",
+      "/assets/ALBUM1/img5.jpeg",
+      "/assets/ALBUM1/img8.jpeg",
+    ],
+    []
+  );
+
+  const [servicesCardIndex, setServicesCardIndex] = useState(0);
+  const [servicesCardPrevIndex, setServicesCardPrevIndex] = useState<
+    number | null
+  >(null);
+  const [isFadingServicesCard, setIsFadingServicesCard] = useState(false);
+
+  // refs pra não recriar interval por dependência
+  const heroIndexRef = useRef(0);
+  const servicesIndexRef = useRef(0);
+
+  useEffect(() => {
+    heroIndexRef.current = heroIndex;
+  }, [heroIndex]);
+
+  useEffect(() => {
+    servicesIndexRef.current = servicesCardIndex;
+  }, [servicesCardIndex]);
+
   useEffect(() => {
     // ===== MENU MOBILE =====
     const menuBtn = document.getElementById("menuBtn");
     const menu = document.getElementById("mobileMenu");
 
-    const openMenu = () => menu?.classList.remove("hidden");
     const closeMenu = () => menu?.classList.add("hidden");
     const toggleMenu = () => menu?.classList.toggle("hidden");
 
     const handleMenuBtnClick = (e: Event) => {
-      e.stopPropagation(); // não deixa o clique “subir” e fechar na hora
+      e.stopPropagation();
       toggleMenu();
     };
 
@@ -40,12 +80,10 @@ export default function Page() {
       const clickedInsideMenu = target ? menu.contains(target) : false;
       const clickedMenuBtn = target ? menuBtn.contains(target) : false;
 
-      // se clicou fora do menu e fora do botão -> fecha
       if (!clickedInsideMenu && !clickedMenuBtn) closeMenu();
     };
 
     const handleLinkClick = (e: Event) => {
-      // ao clicar em qualquer link do menu, fecha também
       const target = e.target as HTMLElement | null;
       if (target?.tagName?.toLowerCase() === "a") closeMenu();
     };
@@ -54,13 +92,11 @@ export default function Page() {
     document.addEventListener("click", handleClickOutside);
     menu?.addEventListener("click", handleLinkClick);
 
-    // opcional: fecha ao apertar ESC
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeMenu();
     };
     document.addEventListener("keydown", handleEsc);
 
-    // garante fechado ao carregar
     closeMenu();
 
     return () => {
@@ -71,39 +107,113 @@ export default function Page() {
     };
   }, []);
 
+  // ✅ HERO slideshow (transição suave) - melhorado (não recria interval por render)
+  useEffect(() => {
+    if (!HERO_IMAGES.length) return;
+
+    // pré-carrega
+    HERO_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    const interval = setInterval(() => {
+      const current = heroIndexRef.current;
+      const next = (current + 1) % HERO_IMAGES.length;
+
+      setHeroPrevIndex(current);
+      setIsFadingHero(true);
+      setHeroIndex(next);
+
+      const t = setTimeout(() => {
+        setIsFadingHero(false);
+        setHeroPrevIndex(null);
+      }, 900);
+
+      return () => clearTimeout(t);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [HERO_IMAGES]);
+
+  // ✅ SLIDESHOW do card da seção CONTATO/ORÇAMENTO (transição suave) - melhorado
+  useEffect(() => {
+    if (!SERVICES_CARD_IMAGES.length) return;
+
+    // pré-carrega
+    SERVICES_CARD_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    const interval = setInterval(() => {
+      const current = servicesIndexRef.current;
+      const next = (current + 1) % SERVICES_CARD_IMAGES.length;
+
+      setServicesCardPrevIndex(current);
+      setIsFadingServicesCard(true);
+      setServicesCardIndex(next);
+
+      const t = setTimeout(() => {
+        setIsFadingServicesCard(false);
+        setServicesCardPrevIndex(null);
+      }, 900);
+
+      return () => clearTimeout(t);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [SERVICES_CARD_IMAGES]);
+
   return (
     <main className="bg-black text-white min-h-screen">
       {/* HERO */}
       <section
         id="home"
-        className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/assets/img1.jpeg')" }}
+        className="relative w-full min-h-[85vh] sm:min-h-screen overflow-hidden"
       >
-        <div className="absolute inset-0 bg-black/40"></div>
+        {/* ✅ Camadas de imagem (crossfade) */}
+        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
+            style={{ backgroundImage: `url('${HERO_IMAGES[heroIndex]}')` }}
+          />
+
+          {heroPrevIndex !== null && (
+            <div
+              className={`absolute inset-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000 ${
+                isFadingHero ? "opacity-0" : "opacity-100"
+              }`}
+              style={{ backgroundImage: `url('${HERO_IMAGES[heroPrevIndex]}')` }}
+            />
+          )}
+
+          <div className="absolute inset-0 bg-black/55 md:bg-black/40" />
+        </div>
 
         {/* HEADER */}
         <header className="absolute top-0 left-0 w-full z-20">
-          <div className="w-full bg-black/30 backdrop-blur-[2px]">
-            <div className="max-w-6xl mx-auto px-4 h-22 flex items-center justify-between">
+          <div className="w-full bg-black/40 backdrop-blur-sm">
+            <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
               <a href="#home" className="flex items-center">
                 <img
                   src="/assets/logo.png"
                   alt="CAM Vidraçaria"
-                  className="h-60 w-auto object-contain"
+                  className="h-14 sm:h-20 md:h-28 w-auto object-contain"
                 />
               </a>
 
               <button
                 id="menuBtn"
                 type="button"
-                className="w-12 h-12 flex flex-col justify-center items-center gap-1 rounded border border-white/30 hover:bg-white/10 transition"
+                className="w-11 h-11 sm:w-12 sm:h-12 flex flex-col justify-center items-center gap-1 rounded border border-white/30 hover:bg-white/10 transition"
                 aria-label="Abrir menu"
                 aria-expanded="false"
                 aria-controls="mobileMenu"
               >
-                <span className="w-7 h-0.5 bg-white"></span>
-                <span className="w-7 h-0.5 bg-white"></span>
-                <span className="w-7 h-0.5 bg-white"></span>
+                <span className="w-6 sm:w-7 h-0.5 bg-white"></span>
+                <span className="w-6 sm:w-7 h-0.5 bg-white"></span>
+                <span className="w-6 sm:w-7 h-0.5 bg-white"></span>
               </button>
             </div>
           </div>
@@ -111,7 +221,7 @@ export default function Page() {
           {/* MENU dropdown */}
           <nav
             id="mobileMenu"
-            className="hidden w-full bg-black/80 border-t border-white/10"
+            className="hidden w-full bg-black/85 border-t border-white/10"
           >
             <div className="max-w-6xl mx-auto flex flex-col text-center">
               <a href="#home" className="p-4 hover:bg-white/10 transition">
@@ -123,32 +233,41 @@ export default function Page() {
               <a href="#servicos" className="p-4 hover:bg-white/10 transition">
                 Serviços
               </a>
-                <a href="#contato" className="p-4 hover:bg-white/10 transition">
+              <a href="#contato" className="p-4 hover:bg-white/10 transition">
                 Contato
               </a>
             </div>
           </nav>
         </header>
 
-        {/* CONTEÚDO DO HERO */}
-        <div className="relative z-10 max-w-6xl mx-auto pt-20 md:pt-32">
-          <h1 className="font-extrabold leading-tight text-3xl sm:text-4xl md:text-3xl text-white drop-shadow p-36">
-            ATENDENDO SUA NECESSIDADE
-            <br />
-            DEXANDO SEU AMBIENTE MAIS ELEGANTE
-          </h1>
+        {/* CONTEÚDO DO HERO (mais pra baixo + mais pra esquerda + menor no mobile) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-4">
+          <div className="pt-52 sm:pt-60 md:pt-64 max-w-[760px] sm:-ml-4 md:-ml-8">
+            <h1
+              className="
+                font-extrabold leading-tight text-white drop-shadow
+                text-xl sm:text-3xl md:text-4xl
+              "
+            >
+              ATENDENDO SUA NECESSIDADE
+              <br />
+              DEIXANDO SEU AMBIENTE
+              <br />
+              MAIS ELEGANTE
+            </h1>
+          </div>
         </div>
       </section>
 
       <section id="sobre" className="bg-white text-black">
-        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 py-12 sm:py-14 md:py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
             <div>
               <p className="text-sm text-black/70 mb-2">
                 CA Vidraçaria e Esquadrias de Alumínio
               </p>
 
-              <h2 className="text-3xl md:text-4xl font-extrabold leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight">
                 Soluções em Esquadrias de Alto
                 <br className="hidden sm:block" />
                 Desempenho para Projetos Modernos
@@ -162,8 +281,8 @@ export default function Page() {
               </p>
 
               <a
-                href="https://wa.me/5548999516903?text=Ola%20vim%20pelo%20site%20da%20CA%20Vidros%20e%20quero%20um%20orcamento.%20Pode%20me%20orientar%3F"
-                className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                href="https://wa.me/5548999516903?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20CA%20Vidra%C3%A7aria%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento"
+                className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition w-full sm:w-auto"
               >
                 Faça seu orçamento
               </a>
@@ -173,20 +292,22 @@ export default function Page() {
               <img
                 src="/assets/img5.jpeg"
                 alt="Projeto em vidro da CA Vidraçaria"
-                className="w-full md:w-[400px] rounded-2xl object-cover shadow-lg"
+                className="w-full md:w-[420px] rounded-2xl object-cover shadow-lg max-h-[360px]"
               />
             </div>
           </div>
         </div>
       </section>
 
+      {/* SERVIÇOS */}
       <section id="servicos" className="bg-white text-black">
-        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
-          <h2 className="text-center text-2xl md:text-3xl font-extrabold mb-8">
-            Nossos serviços em Vidraçaria e Esquadrias de Alumínio
+        <div className="max-w-6xl mx-auto px-4 py-12 sm:py-14 md:py-20">
+          <h2 className="text-center text-xl sm:text-2xl md:text-3xl font-extrabold mb-8">
+            Aqui na CA Vidraçaria o seu projeto é único e nós cuidamos de cada
+            detalhe
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             <a
               href="#"
               className="group relative rounded-2xl overflow-hidden shadow-sm border border-black/10"
@@ -194,7 +315,7 @@ export default function Page() {
               <img
                 src="/assets/img16.jpeg"
                 alt="Portões em alumínio"
-                className="h-60 w-full object-cover group-hover:scale-105 transition duration-300"
+                className="h-56 sm:h-60 w-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute inset-0 bg-black/25"></div>
               <span className="absolute bottom-3 left-3 text-white text-sm font-semibold drop-shadow">
@@ -209,7 +330,7 @@ export default function Page() {
               <img
                 src="/assets/img17.jpeg"
                 alt="Divisória em vidro para ambientes corporativo"
-                className="h-60 w-full object-cover group-hover:scale-105 transition duration-300"
+                className="h-56 sm:h-60 w-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute inset-0 bg-black/25"></div>
               <span className="absolute bottom-3 left-3 text-white text-sm font-semibold drop-shadow">
@@ -224,7 +345,7 @@ export default function Page() {
               <img
                 src="/assets/img18.jpeg"
                 alt="Esquadrais termo acusticas"
-                className="h-60 w-full object-cover group-hover:scale-105 transition duration-300"
+                className="h-56 sm:h-60 w-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute inset-0 bg-black/25"></div>
               <span className="absolute bottom-3 left-3 text-white text-sm font-semibold drop-shadow">
@@ -239,7 +360,7 @@ export default function Page() {
               <img
                 src="/assets/img19.jpeg"
                 alt="Fachadas"
-                className="h-60 w-full object-cover group-hover:scale-105 transition duration-300"
+                className="h-56 sm:h-60 w-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute inset-0 bg-black/25"></div>
               <span className="absolute bottom-3 left-3 text-white text-sm font-semibold drop-shadow">
@@ -249,12 +370,12 @@ export default function Page() {
 
             <a
               href="#"
-              className="group relative rounded-2xl overflow-hidden shadow-sm border border-black/10 lg:col-start-2"
+              className="group relative rounded-2xl overflow-hidden shadow-sm border border-black/10 sm:col-span-2 lg:col-span-1"
             >
               <img
                 src="/assets/img20.jpeg"
                 alt="percianas"
-                className="h-60 w-full object-cover group-hover:scale-105 transition duration-300"
+                className="h-56 sm:h-60 w-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute inset-0 bg-black/25"></div>
               <span className="absolute bottom-3 left-3 text-white text-sm font-semibold drop-shadow">
@@ -266,13 +387,13 @@ export default function Page() {
       </section>
 
       <section id="diferenciais" className="bg-white text-black">
-        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
-          <h2 className="text-center text-2xl md:text-3xl font-extrabold mb-10">
+        <div className="max-w-6xl mx-auto px-4 py-12 sm:py-14 md:py-20">
+          <h2 className="text-center text-xl sm:text-2xl md:text-3xl font-extrabold mb-10">
             Por que escolher a CA Vidraçaria?
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#1677B3] text-white rounded-xl p-6 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            <div className="bg-[#1677B3] text-white rounded-xl p-5 sm:p-6 shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +418,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-[#1677B3] text-white rounded-xl p-6 shadow-sm">
+            <div className="bg-[#1677B3] text-white rounded-xl p-5 sm:p-6 shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -323,7 +444,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-[#1677B3] text-white rounded-xl p-6 shadow-sm">
+            <div className="bg-[#1677B3] text-white rounded-xl p-5 sm:p-6 shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -348,7 +469,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-[#1677B3] text-white rounded-xl p-6 shadow-sm">
+            <div className="bg-[#1677B3] text-white rounded-xl p-5 sm:p-6 shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -381,17 +502,11 @@ export default function Page() {
 
       <ReviewsSection />
 
+      {/* ✅ CONTATO / ORÇAMENTO */}
       <section id="contato" className="bg-white text-black">
-        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div className="rounded-2xl overflow-hidden border border-black/10 shadow-sm">
-              <img
-                src="/assets/img12.jpeg"
-                alt="Certificado CA Vidraçaria"
-                className="w-full h-[280px] md:h-[340px] object-cover"
-              />
-            </div>
-
+        <div className="max-w-6xl mx-auto px-4 py-12 sm:py-14 md:py-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
+            {/* ESQUERDA: TEXTO */}
             <div>
               <h2 className="text-2xl md:text-3xl font-extrabold mb-3">
                 Solicite Seu Orçamento Agora Mesmo
@@ -409,13 +524,44 @@ export default function Page() {
               </p>
 
               <a
-                href="https://wa.me/5548999516903?text=Ola%20vim%20pelo%20site%20da%20CA%20Vidros%20e%20quero%20um%20orcamento.%20Pode%20me%20orientar%3F"
+                href="https://wa.me/5548999516903?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20CA%20Vidra%C3%A7aria%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition w-full sm:w-auto"
               >
                 Solicitar Orçamento no WhatsApp
               </a>
+            </div>
+
+            {/* DIREITA: CARD SLIDESHOW (altura menor no mobile) */}
+            <div className="rounded-2xl overflow-hidden border border-black/10 shadow-sm">
+              <div className="relative w-full h-[220px] sm:h-[280px] md:h-[340px]">
+                <div
+                  className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
+                  style={{
+                    backgroundImage: `url('${SERVICES_CARD_IMAGES[servicesCardIndex]}')`,
+                  }}
+                />
+
+                {servicesCardPrevIndex !== null && (
+                  <div
+                    className={`absolute inset-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000 ${
+                      isFadingServicesCard ? "opacity-0" : "opacity-100"
+                    }`}
+                    style={{
+                      backgroundImage: `url('${SERVICES_CARD_IMAGES[servicesCardPrevIndex]}')`,
+                    }}
+                  />
+                )}
+
+                <div className="absolute inset-0 bg-black/10" />
+
+                <div className="absolute bottom-3 left-3">
+                  <span className="inline-flex px-3 py-1 rounded-full bg-black/55 text-white text-xs font-semibold backdrop-blur-sm">
+                    Projetos Recentes
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -431,17 +577,18 @@ export default function Page() {
           <FontAwesomeIcon icon={faArrowUp} className="w-5 h-5" />
         </button>
 
-        <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr] gap-10 lg:gap-12 items-start">
             <div className="space-y-5">
               <img
                 src="/assets/logo.png"
                 alt="CA Vidraçaria"
-                className="h-32 w-auto object-contain"
+                className="h-24 sm:h-28 md:h-32 w-auto object-contain"
               />
 
               <p className="text-sm text-white/60 leading-relaxed max-w-xs">
-                Soluções em vidro com sofisticação, segurança e durabilidade.
+                Solução em esquadrias de alumínio com sofisticação,segurança e
+                durabilidade para o seu projeto!
               </p>
             </div>
 
@@ -482,7 +629,7 @@ export default function Page() {
                   <span className="text-blue-500 w-5 flex justify-center">
                     <FontAwesomeIcon icon={faEnvelope} />
                   </span>
-                  <span>contato@cavidracaria.com</span>
+                  <span>cavidracaria78@gmail.com</span>
                 </div>
               </div>
             </div>
@@ -505,20 +652,18 @@ export default function Page() {
               <div className="flex gap-4">
                 <a
                   href="https://www.instagram.com/ca_vidracaria_/"
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-pink-600 transition-all hover:scale-110"
+                  className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-pink-600 transition-all hover:scale-110"
                   aria-label="Instagram"
                 >
                   <FontAwesomeIcon icon={faInstagram} className="w-5 h-5" />
                 </a>
 
-              
-
                 <a
-                  href="https://wa.me/5548999516903?text=Ola%20vim%20pelo%20site%20da%20CA%20Vidros%20e%20quero%20um%20orcamento.%20Pode%20me%20orientar%3F"
+                  href="https://wa.me/5548999516903?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20CA%20Vidra%C3%A7aria%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento"
                   target="_blank"
                   aria-label="WhatsApp"
                   rel="noopener noreferrer"
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-green-600 transition-all duration-300 hover:scale-110"
+                  className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-green-600 transition-all duration-300 hover:scale-110"
                 >
                   <FontAwesomeIcon icon={faWhatsapp} className="w-5 h-5" />
                 </a>
@@ -526,7 +671,7 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="mt-16 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40">
+          <div className="mt-12 sm:mt-16 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40">
             <span>© 2025 CA Vidraçaria</span>
             <span>Todos os direitos reservados</span>
           </div>
