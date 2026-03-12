@@ -39,6 +39,9 @@ export default function Page() {
       "/assets/ALBUM1/img3.jpeg",
       "/assets/ALBUM1/img5.jpeg",
       "/assets/ALBUM1/img8.jpeg",
+      "/assets/ALBUM1/img13.jpeg",
+      "/assets/ALBUM1/img19.jpeg",
+      "/assets/ALBUM1/img20.jpeg",
     ],
     []
   );
