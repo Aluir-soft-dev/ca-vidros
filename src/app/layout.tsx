@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CA Vidraçaria e Esquadrias de Alumínio",
   description:
-    "Soluções em vidro e esquadrias de alumínio com qualidade, segurança e sofisticação.",
+    "ATENDENDO SUA NECESSIDADE,DEXANDO SEU AMBIENTE MAIS ELEGANTE.",
 
   keywords: [
     "vidraçaria",
