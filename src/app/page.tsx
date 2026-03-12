@@ -22,7 +22,6 @@ export default function Page() {
       "/assets/ALBUM2/img1.jpeg",
       "/assets/ALBUM2/img2.jpeg",
       "/assets/ALBUM2/img10.jpeg",
-      "/assets/ALBUM2/img12.jpeg",
       "/assets/ALBUM2/img14.jpeg",
     ],
     []
