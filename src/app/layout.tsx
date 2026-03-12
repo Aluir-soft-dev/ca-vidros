@@ -19,9 +19,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cavidracaria.com.br"),
+
   title: "CA Vidraçaria e Esquadrias de Alumínio",
   description:
-    "ATENDENDO SUA NECESSIDADE,DEXANDO SEU AMBIENTE MAIS ELEGANTE.",
+    "Atendendo sua necessidade, deixando seu ambiente mais elegante.",
 
   keywords: [
     "vidraçaria",
@@ -40,8 +42,6 @@ export const metadata: Metadata = {
   creator: "CA Vidraçaria",
   publisher: "CA Vidraçaria",
 
-  metadataBase: new URL("https://cavidracaria.com.br"),
-
   alternates: {
     canonical: "/",
   },
@@ -55,15 +55,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CA Vidraçaria e Esquadrias de Alumínio",
     description:
-      "Soluções em vidro e esquadrias de alumínio com qualidade, segurança e sofisticação.",
+      "Atendendo sua necessidade, deixando seu ambiente mais elegante.",
     url: "https://cavidracaria.com.br",
     siteName: "CA Vidraçaria",
     locale: "pt_BR",
     type: "website",
-
     images: [
       {
-        url: "/assets/logo.png",
+        url: "https://cavidracaria.com.br/assets/logo.png",
         width: 1200,
         height: 630,
         alt: "CA Vidraçaria e Esquadrias de Alumínio",
@@ -75,8 +74,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CA Vidraçaria e Esquadrias de Alumínio",
     description:
-      "Soluções em vidro e esquadrias de alumínio com qualidade, segurança e sofisticação.",
-    images: ["/assets/logo.png"],
+      "Atendendo sua necessidade, deixando seu ambiente mais elegante.",
+    images: ["https://cavidracaria.com.br/assets/logo.png"],
   },
 };
 
@@ -86,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-BR">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
       >
